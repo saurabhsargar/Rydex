@@ -29,7 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
       }
     }
   }
@@ -37,38 +39,96 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      backgroundColor: const Color(0xFFF1F8E9), // Light green background
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Email'),
-                onChanged: (val) => email = val,
-                validator: (val) => val!.isEmpty ? 'Enter email' : null,
+              const SizedBox(height: 30),
+              Icon(
+                Icons.directions_car_filled,
+                size: 100,
+                color: Color(0xFF2E7D32),
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                onChanged: (val) => password = val,
-                validator: (val) => val!.length < 6 ? 'Min 6 characters' : null,
+              const SizedBox(height: 10),
+              const Text(
+                "Welcome Back",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2E7D32),
+                ),
               ),
-              const SizedBox(height: 20),
-              loading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _login,
-                      child: const Text("Login"),
+              const SizedBox(height: 30),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(Icons.email),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (val) => email = val,
+                      validator: (val) => val!.isEmpty ? 'Enter email' : null,
                     ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => const SignUpScreen()));
-                },
-                child: const Text("Don't have an account? Sign up"),
-              )
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (val) => password = val,
+                      validator:
+                          (val) => val!.length < 6 ? 'Min 6 characters' : null,
+                    ),
+                    const SizedBox(height: 30),
+                    loading
+                        ? const CircularProgressIndicator()
+                        : SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: const Color(0xFF2E7D32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: _login,
+                            child: const Text(
+                              "Login",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SignUpScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Don't have an account? Sign up",
+                        style: TextStyle(color: Color(0xFF2E7D32)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

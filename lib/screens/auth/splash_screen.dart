@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               Icon(Icons.directions_car, size: 100, color: Colors.white),
               const SizedBox(height: 16),
               Text(
-                'GreenRide',
+                'RYDEX',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

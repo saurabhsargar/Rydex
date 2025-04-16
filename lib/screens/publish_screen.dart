@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rydex/screens/map_preview.dart';
 import 'package:rydex/screens/place_search_screen.dart';
-import 'package:geolocator/geolocator.dart'; // Add at the top
+import 'package:geolocator/geolocator.dart';
 
 class PublishRideScreen extends StatefulWidget {
   const PublishRideScreen({super.key});
@@ -19,7 +19,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
   LatLng? goingToLatLng;
 
   final String googleMapsApiKey =
-      'AIzaSyCDYtA7aiWr5_Xni4Q6JLrC27xpCk1VKSM'; // Replace with your actual key
+      'AIzaSyCDYtA7aiWr5_Xni4Q6JLrC27xpCk1VKSM';
 
   final TextEditingController leavingFromController = TextEditingController();
   final TextEditingController goingToController = TextEditingController();
@@ -32,7 +32,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
 
   Future<void> _uploadRideToFirebase() async {
     final rideData = {
-      'userId': FirebaseAuth.instance.currentUser?.uid, // Store the userId
+      'userId': FirebaseAuth.instance.currentUser?.uid,
       'from': leavingFromController.text,
       'from_location': {
         'lat': leavingFromLatLng!.latitude,
@@ -83,6 +83,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.green[50], // Light green background
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -92,7 +93,11 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
             children: [
               const Text(
                 "Publish a Ride",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green, // Green title
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -101,8 +106,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
+                      builder: (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
                     ),
                   );
 
@@ -112,29 +116,24 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                       leavingFromLatLng = result['location'];
                     });
                   }
-                  // if (result['location'] is LatLng) {
-                  //   setState(() {
-                  //     leavingFromController.text = result['description'];
-                  //     leavingFromLatLng = result['location'];
-                  //   });
-                  // } else {
-                  //   print("Invalid location format");
-                  // }
                 },
                 child: AbsorbPointer(
                   child: TextFormField(
                     controller: leavingFromController,
                     decoration: InputDecoration(
                       labelText: "Leaving From",
+                      labelStyle: TextStyle(color: Colors.green),
+                      filled: true,
+                      fillColor: Colors.green[100], // Green field
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.my_location),
-                        onPressed: _getCurrentLocation, // Define this function
+                        icon: const Icon(Icons.my_location, color: Colors.green),
+                        onPressed: _getCurrentLocation,
                       ),
                     ),
-                    validator:
-                        (value) =>
-                            value!.isEmpty ? "Enter departure location" : null,
+                    validator: (value) => value!.isEmpty
+                        ? "Enter departure location"
+                        : null,
                   ),
                 ),
               ),
@@ -146,8 +145,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
+                      builder: (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
                     ),
                   );
 
@@ -157,24 +155,19 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                       goingToLatLng = result['location'];
                     });
                   }
-                  // if (result['location'] is LatLng) {
-                  //   setState(() {
-                  //     goingToController.text = result['description'];
-                  //     goingToLatLng = result['location'];
-                  //   });
-                  // } else {
-                  //   print("Invalid location format");
-                  // }
                 },
                 child: AbsorbPointer(
                   child: TextFormField(
                     controller: goingToController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "Going To",
-                      border: OutlineInputBorder(),
+                      labelStyle: const TextStyle(color: Colors.green),
+                      filled: true,
+                      fillColor: Colors.green[100], // Green field
+                      border: const OutlineInputBorder(),
                     ),
-                    validator:
-                        (value) => value!.isEmpty ? "Enter destination" : null,
+                    validator: (value) =>
+                        value!.isEmpty ? "Enter destination" : null,
                   ),
                 ),
               ),
@@ -196,10 +189,12 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                 child: AbsorbPointer(
                   child: TextFormField(
                     decoration: InputDecoration(
-                      labelText:
-                          selectedDate == null
-                              ? "Select Date"
-                              : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                      labelText: selectedDate == null
+                          ? "Select Date"
+                          : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                      labelStyle: TextStyle(color: Colors.green),
+                      filled: true,
+                      fillColor: Colors.green[100], // Green field
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -220,10 +215,12 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                 child: AbsorbPointer(
                   child: TextFormField(
                     decoration: InputDecoration(
-                      labelText:
-                          selectedTime == null
-                              ? "Select Time"
-                              : selectedTime!.format(context),
+                      labelText: selectedTime == null
+                          ? "Select Time"
+                          : selectedTime!.format(context),
+                      labelStyle: TextStyle(color: Colors.green),
+                      filled: true,
+                      fillColor: Colors.green[100], // Green field
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -233,8 +230,11 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
 
               TextFormField(
                 controller: carModelController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Car Model (Optional)",
+                  labelStyle: TextStyle(color: Colors.green),
+                  filled: true,
+                  fillColor: Colors.green[100],
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -242,8 +242,11 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
 
               TextFormField(
                 controller: seatsAvailableController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Seats Available",
+                  labelStyle: TextStyle(color: Colors.green),
+                  filled: true,
+                  fillColor: Colors.green[100],
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
@@ -262,6 +265,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.publish),
                   label: const Text("Publish Ride"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       if (leavingFromLatLng == null || goingToLatLng == null) {
@@ -295,9 +299,8 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.preview),
                   label: const Text("Preview"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () {
-                    print("-----------Result-------- $leavingFromLatLng");
-                    print("-----------Result-------- $goingToLatLng");
                     if (leavingFromLatLng == null || goingToLatLng == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -310,12 +313,11 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (_) => MapPreviewScreen(
-                              origin: leavingFromLatLng!,
-                              destination: goingToLatLng!,
-                              apiKey: googleMapsApiKey,
-                            ),
+                        builder: (_) => MapPreviewScreen(
+                          origin: leavingFromLatLng!,
+                          destination: goingToLatLng!,
+                          apiKey: googleMapsApiKey,
+                        ),
                       ),
                     );
                   },

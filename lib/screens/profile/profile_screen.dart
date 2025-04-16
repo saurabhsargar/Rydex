@@ -18,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>?>(
+    return FutureBuilder<Map<String, dynamic>?>( 
       future: fetchUserData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -37,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.indigo,
+                backgroundColor: Colors.green,
                 child: Text(
                   userData['name'][0].toUpperCase(),
                   style: const TextStyle(fontSize: 40, color: Colors.white),
@@ -47,6 +47,7 @@ class ProfileScreen extends StatelessWidget {
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 4,
+                color: Colors.green[50],
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -62,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
               const Spacer(),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -95,7 +96,7 @@ class ProfileTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+      title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
       subtitle: Text(value, style: const TextStyle(fontSize: 16)),
     );
   }

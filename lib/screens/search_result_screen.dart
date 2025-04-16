@@ -55,7 +55,10 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Available Rides")),
+      appBar: AppBar(
+        title: const Text("Available Rides"),
+        backgroundColor: Colors.green, // Green AppBar
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _searchResults,
         builder: (context, snapshot) {
@@ -82,7 +85,13 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  title: Text("${ride['from']} → ${ride['to']}"),
+                  title: Text(
+                    "${ride['from']} → ${ride['to']}",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green, // Green text
+                    ),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -96,7 +105,10 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                         Text("Driver: ${ride['driverName']}", style: const TextStyle(fontSize: 13)),
                     ],
                   ),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.green, // Green icon color
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,

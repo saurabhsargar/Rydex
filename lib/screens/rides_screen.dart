@@ -31,16 +31,19 @@ class YourRidesScreen extends StatelessWidget {
   Widget buildRideCard(Map<String, dynamic> ride, {required bool isPublished}) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-      elevation: 2,
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Icon(
           isPublished ? Icons.directions_car_filled : Icons.directions_car,
-          color: isPublished ? Colors.indigo : Colors.green,
+          color: isPublished ? Colors.green : Colors.indigo, // Green and Indigo Icons
         ),
         title: Text(
           "${ride['from']} → ${ride['to']}",
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.green, // Green text color
+          ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +63,10 @@ class YourRidesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Your Rides")),
+      appBar: AppBar(
+        title: const Text("Your Rides"),
+        backgroundColor: Colors.green, // Green AppBar
+      ),
       body: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
         future: fetchRides(),
         builder: (context, snapshot) {
@@ -91,10 +97,9 @@ class YourRidesScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   initiallyExpanded: true,
-                  children:
-                      published
-                          .map((ride) => buildRideCard(ride, isPublished: true))
-                          .toList(),
+                  children: published
+                      .map((ride) => buildRideCard(ride, isPublished: true))
+                      .toList(),
                 ),
               if (booked.isNotEmpty)
                 ExpansionTile(
@@ -103,12 +108,11 @@ class YourRidesScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   initiallyExpanded: true,
-                  children:
-                      booked
-                          .map(
-                            (ride) => buildRideCard(ride, isPublished: false),
-                          )
-                          .toList(),
+                  children: booked
+                      .map(
+                        (ride) => buildRideCard(ride, isPublished: false),
+                      )
+                      .toList(),
                 ),
             ],
           );

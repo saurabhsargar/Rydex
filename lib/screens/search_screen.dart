@@ -34,7 +34,7 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             const Text(
               "Search Rides",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
             ),
             const SizedBox(height: 20),
 
@@ -43,8 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
+                    builder: (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
                   ),
                 );
                 if (result != null && result is Map<String, dynamic>) {
@@ -72,8 +71,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
+                    builder: (_) => PlacesSearchScreen(apiKey: googleMapsApiKey),
                   ),
                 );
                 if (result != null && result is Map<String, dynamic>) {
@@ -145,6 +143,10 @@ class _SearchScreenState extends State<SearchScreen> {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.preview),
                 label: const Text("Preview"),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green, // Green button color
+                ),
                 onPressed: () {
                   if (leavingFromLatLng == null || goingToLatLng == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -158,22 +160,27 @@ class _SearchScreenState extends State<SearchScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => MapPreviewScreen(
-                            origin: leavingFromLatLng!,
-                            destination: goingToLatLng!,
-                            apiKey: googleMapsApiKey,
-                          ),
+                      builder: (_) => MapPreviewScreen(
+                        origin: leavingFromLatLng!,
+                        destination: goingToLatLng!,
+                        apiKey: googleMapsApiKey,
+                      ),
                     ),
                   );
                 },
               ),
             ),
 
+            const SizedBox(height: 16),
+
             Center(
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.search),
                 label: const Text("Search"),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green, // Green button color
+                ),
                 onPressed: () {
                   if (leavingFromLatLng == null || goingToLatLng == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -187,14 +194,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => SearchResultScreen(
-                            from: leavingFromController.text,
-                            to: goingToController.text,
-                            date: _selectedDate,
-                            persons: _selectedPersons,
-                            userId: FirebaseAuth.instance.currentUser?.uid,
-                          ),
+                      builder: (_) => SearchResultScreen(
+                        from: leavingFromController.text,
+                        to: goingToController.text,
+                        date: _selectedDate,
+                        persons: _selectedPersons,
+                        userId: FirebaseAuth.instance.currentUser?.uid,
+                      ),
                     ),
                   );
                 },

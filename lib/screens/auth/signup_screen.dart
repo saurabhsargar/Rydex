@@ -47,62 +47,138 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      backgroundColor: const Color(0xFFF1F8E9),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Email'),
-                onChanged: (val) => email = val,
-                validator: (val) => val!.isEmpty ? 'Enter email' : null,
+              const SizedBox(height: 30),
+              Icon(Icons.app_registration, size: 100, color: Color(0xFF2E7D32)),
+              const SizedBox(height: 10),
+              const Text(
+                "Create Account",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2E7D32),
+                ),
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                onChanged: (val) => password = val,
-                validator: (val) => val!.length < 6 ? 'Min 6 characters' : null,
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Name'),
-                onChanged: (val) => name = val,
-                validator: (val) => val!.isEmpty ? 'Enter name' : null,
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Phone'),
-                keyboardType: TextInputType.phone,
-                onChanged: (val) => phone = val,
-                validator: (val) => val!.isEmpty ? 'Enter phone' : null,
-              ),
-              DropdownButtonFormField<String>(
-                value: role,
-                decoration: const InputDecoration(labelText: 'Role'),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'Passenger',
-                    child: Text('Passenger'),
-                  ),
-                  DropdownMenuItem(value: 'Driver', child: Text('Driver')),
-                ],
-                onChanged: (val) => setState(() => role = val!),
-              ),
-              const SizedBox(height: 20),
-              loading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                    onPressed: _signUp,
-                    child: const Text("Sign Up"),
-                  ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                },
-                child: const Text("Already have an account? Login"),
+              const SizedBox(height: 30),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(Icons.email),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (val) => email = val,
+                      validator: (val) => val!.isEmpty ? 'Enter email' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (val) => password = val,
+                      validator:
+                          (val) => val!.length < 6 ? 'Min 6 characters' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        prefixIcon: const Icon(Icons.person),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (val) => name = val,
+                      validator: (val) => val!.isEmpty ? 'Enter name' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Phone',
+                        prefixIcon: const Icon(Icons.phone),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      onChanged: (val) => phone = val,
+                      validator: (val) => val!.isEmpty ? 'Enter phone' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: role,
+                      decoration: InputDecoration(
+                        labelText: 'Role',
+                        prefixIcon: const Icon(Icons.person_pin),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Passenger',
+                          child: Text('Passenger'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Driver',
+                          child: Text('Driver'),
+                        ),
+                      ],
+                      onChanged: (val) => setState(() => role = val!),
+                    ),
+                    const SizedBox(height: 30),
+                    loading
+                        ? const CircularProgressIndicator()
+                        : SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _signUp,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: const Color(0xFF2E7D32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "Sign Up",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Already have an account? Login",
+                        style: TextStyle(color: Color(0xFF2E7D32)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

@@ -22,7 +22,6 @@ class RideDetailScreen extends StatelessWidget {
       await FirebaseFirestore.instance.collection('bookings').add({
         'userId': FirebaseAuth.instance.currentUser?.uid,
         'rideId': rideId,
-        // 'userId': user.uid,
         'from': ride['from'],
         'to': ride['to'],
         'date': ride['date'],
@@ -59,7 +58,10 @@ class RideDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Ride Details")),
+      appBar: AppBar(
+        title: const Text("Ride Details"),
+        backgroundColor: Colors.green, // Green AppBar
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Card(
@@ -70,8 +72,14 @@ class RideDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("${ride['from']} → ${ride['to']}",
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(
+                  "${ride['from']} → ${ride['to']}",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green, // Green title text
+                  ),
+                ),
                 const SizedBox(height: 16),
                 if (ride['date'] != null) Text("Date: ${ride['date']}"),
                 if (ride['time'] != null) Text("Time: ${ride['time']}"),
@@ -84,6 +92,9 @@ class RideDetailScreen extends StatelessWidget {
                     onPressed: () => bookRide(context),
                     icon: const Icon(Icons.check_circle),
                     label: const Text("Book Ride"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green, // Green button
+                    ),
                   ),
                 ),
               ],

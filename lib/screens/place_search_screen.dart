@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
@@ -14,9 +16,11 @@ class PlacesSearchScreen extends StatefulWidget {
 
 class _PlacesSearchScreenState extends State<PlacesSearchScreen> {
   final TextEditingController _controller = TextEditingController();
-  List<Prediction> _predictions = [];
-  late GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: '');
-  // late GoogleMapsPlaces _places;
+  final List<Prediction> _predictions = [];
+  late GoogleMapsPlaces _places;
+  bool _isLoading = false;
+  String _errorMessage = '';
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -24,8 +28,33 @@ class _PlacesSearchScreenState extends State<PlacesSearchScreen> {
     _places = GoogleMapsPlaces(apiKey: widget.apiKey);
   }
 
-  void _searchPlaces(String input) async {
-    if (input.isEmpty) return;
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String input) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchPlaces(input);
+    });
+  }
+
+  Future<void> _searchPlaces(String input) async {
+    if (input.isEmpty) {
+      setState(() {
+        _predictions.clear();
+        _errorMessage = '';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
 
     final response = await _places.autocomplete(
       input,
@@ -35,23 +64,23 @@ class _PlacesSearchScreenState extends State<PlacesSearchScreen> {
 
     if (response.isOkay) {
       setState(() {
-        _predictions = response.predictions;
+        _predictions
+          ..clear()
+          ..addAll(response.predictions);
+        _isLoading = false;
       });
     } else {
       setState(() {
-        _predictions = [];
+        _predictions.clear();
+        _errorMessage = 'Something went wrong. Please try again.';
+        _isLoading = false;
       });
     }
   }
 
-  void _selectPlace(Prediction prediction) async {
+  Future<void> _selectPlace(Prediction prediction) async {
     final details = await _places.getDetailsByPlaceId(prediction.placeId!);
     final location = details.result.geometry!.location;
-    final result = {
-      'description': prediction.description,
-      'lat': location.lat,
-      'lng': location.lng,
-    };
     Navigator.pop(context, {
       'description': prediction.description,
       'location': LatLng(location.lat, location.lng),
@@ -61,7 +90,11 @@ class _PlacesSearchScreenState extends State<PlacesSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Location')),
+      appBar: AppBar(
+        title: const Text('Search Location'),
+        backgroundColor: const Color(0xFF2E7D32),
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -71,13 +104,37 @@ class _PlacesSearchScreenState extends State<PlacesSearchScreen> {
               decoration: InputDecoration(
                 hintText: 'Search places...',
                 prefixIcon: const Icon(Icons.search),
+                suffixIcon: _controller.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _controller.clear();
+                          _searchPlaces('');
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onChanged: _searchPlaces,
+              onChanged: _onSearchChanged,
             ),
             const SizedBox(height: 10),
+            if (_isLoading)
+              const LinearProgressIndicator()
+            else if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  _errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              )
+            else if (_predictions.isEmpty && _controller.text.isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Text('No results found.'),
+              ),
             Expanded(
               child: ListView.builder(
                 itemCount: _predictions.length,
@@ -96,3 +153,4 @@ class _PlacesSearchScreenState extends State<PlacesSearchScreen> {
     );
   }
 }
+

@@ -21,18 +21,18 @@ class _HomeScreenState extends State<HomeScreen> {
     const ProfileScreen(),
   ];
 
-  final List<String> titles = [
-    "Search Rides",
-    "Publish Ride",
-    "Your Rides",
-    "Profile"
-  ];
+  // final List<String> titles = [
+  //   "Search Rides",
+  //   "Publish Ride",
+  //   "Your Rides",
+  //   "Profile"
+  // ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[currentIndex]),
+        // title: Text(titles[currentIndex]),
       ),
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(

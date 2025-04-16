@@ -22,6 +22,7 @@ class _MapPreviewScreenState extends State<MapPreviewScreen> {
   late GoogleMapController _mapController;
   final Set<Polyline> _polylines = {};
   final Set<Marker> _markers = {};
+  bool _loading = true;
 
   @override
   void initState() {
@@ -31,16 +32,18 @@ class _MapPreviewScreenState extends State<MapPreviewScreen> {
   }
 
   void _setMarkers() {
-    _markers.add(Marker(
-      markerId: const MarkerId('origin'),
-      position: widget.origin,
-      infoWindow: const InfoWindow(title: 'Leaving From'),
-    ));
-    _markers.add(Marker(
-      markerId: const MarkerId('destination'),
-      position: widget.destination,
-      infoWindow: const InfoWindow(title: 'Going To'),
-    ));
+    _markers.addAll([
+      Marker(
+        markerId: const MarkerId('origin'),
+        position: widget.origin,
+        infoWindow: const InfoWindow(title: 'Leaving From'),
+      ),
+      Marker(
+        markerId: const MarkerId('destination'),
+        position: widget.destination,
+        infoWindow: const InfoWindow(title: 'Going To'),
+      ),
+    ]);
   }
 
   Future<void> _drawRoute() async {
@@ -63,13 +66,15 @@ class _MapPreviewScreenState extends State<MapPreviewScreen> {
           width: 5,
           color: Colors.blue,
         ));
+        _loading = false;
       });
+    } else {
+      setState(() => _loading = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final bounds = LatLngBounds(
+  LatLngBounds _getBounds() {
+    return LatLngBounds(
       southwest: LatLng(
         widget.origin.latitude < widget.destination.latitude
             ? widget.origin.latitude
@@ -87,28 +92,51 @@ class _MapPreviewScreenState extends State<MapPreviewScreen> {
             : widget.destination.longitude,
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final center = LatLng(
+      (widget.origin.latitude + widget.destination.latitude) / 2,
+      (widget.origin.longitude + widget.destination.longitude) / 2,
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Route Preview')),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(
-            (widget.origin.latitude + widget.destination.latitude) / 2,
-            (widget.origin.longitude + widget.destination.longitude) / 2,
+      appBar: AppBar(
+        title: const Text('Route Preview'),
+        backgroundColor: const Color(0xFF2E7D32),
+        foregroundColor: Colors.white,
+      ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(target: center, zoom: 12),
+            onMapCreated: (controller) {
+              _mapController = controller;
+              Future.delayed(
+                const Duration(milliseconds: 300),
+                () {
+                  try {
+                    _mapController.animateCamera(
+                      CameraUpdate.newLatLngBounds(_getBounds(), 50),
+                    );
+                  } catch (e) {
+                    debugPrint("Camera move error: $e");
+                  }
+                },
+              );
+            },
+            markers: _markers,
+            polylines: _polylines,
+            myLocationEnabled: true,
           ),
-          zoom: 12,
-        ),
-        onMapCreated: (controller) {
-          _mapController = controller;
-          Future.delayed(
-            const Duration(milliseconds: 300),
-            () => _mapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50)),
-          );
-        },
-        polylines: _polylines,
-        markers: _markers,
-        myLocationEnabled: true,
+          if (_loading)
+            const Center(
+              child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
+            ),
+        ],
       ),
     );
   }
 }
+
