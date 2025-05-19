@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rydex/screens/ride_detail_screen.dart';
@@ -8,6 +9,7 @@ class SearchResultScreen extends StatefulWidget {
   final String to;
   final DateTime? date;
   final int persons;
+  final String? userId;
 
   const SearchResultScreen({
     super.key,
@@ -15,7 +17,7 @@ class SearchResultScreen extends StatefulWidget {
     required this.to,
     required this.date,
     required this.persons,
-    required userId,
+    required this.userId,
   });
 
   @override
@@ -32,24 +34,38 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchMatchingRides() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('rides')
-        .where('from', isEqualTo: widget.from)
-        .where('to', isEqualTo: widget.to)
-        .get();
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('rides')
+            .where('from', isEqualTo: widget.from)
+            .where('to', isEqualTo: widget.to)
+            .get();
 
-    return snapshot.docs.where((doc) {
-      final ride = doc.data();
-      final rideDateStr = ride['date'] as String?;
-      if (rideDateStr == null) return false;
+    return snapshot.docs
+        .where((doc) {
+          final data = doc.data();
+          final rideDateStr = data['date'] as String?;
+          final rideDate =
+              rideDateStr != null ? DateTime.tryParse(rideDateStr) : null;
 
-      final rideDate = DateFormat('yyyy-MM-dd').parse(rideDateStr);
-      return widget.date == null || rideDate == widget.date;
-    }).map((doc) {
-      final rideData = doc.data();
-      rideData['id'] = doc.id; // Add doc ID to ride data
-      return rideData;
-    }).toList();
+          // Consistently use 'seats_available' field for available seats
+          final seatsAvailable = data['seats_available'] ?? 0;
+          
+          // Optional: Exclude user's own rides
+          // final isNotSelfRide = data['userId'] != widget.userId;
+
+          return rideDate != null &&
+              rideDate.year == widget.date?.year &&
+              rideDate.month == widget.date?.month &&
+              rideDate.day == widget.date?.day &&
+              seatsAvailable >= widget.persons;
+              // isNotSelfRide; // Uncomment to exclude self rides
+        })
+        .map((doc) {
+          final data = doc.data();
+          return {'id': doc.id, ...data};
+        })
+        .toList();
   }
 
   @override
@@ -75,6 +91,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final ride = rides[index];
+              final seatsAvailable = ride['seats_available'] ?? 0;
 
               return Card(
                 elevation: 4,
@@ -87,27 +104,28 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (ride['date'] != null)
-                        Text("Date: ${ride['date']}", style: const TextStyle(fontSize: 13)),
+                        Text(
+                          "Date: ${ride['date']}",
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       if (ride['time'] != null)
-                        Text("Time: ${ride['time']}", style: const TextStyle(fontSize: 13)),
-                      if (ride['seats'] != null)
-                        Text("Available Seats: ${ride['seats']}", style: const TextStyle(fontSize: 13)),
+                        Text(
+                          "Time: ${ride['time']}",
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      Text(
+                        "Available Seats: $seatsAvailable",
+                        style: const TextStyle(fontSize: 13),
+                      ),
                       if (ride['driverName'] != null)
-                        Text("Driver: ${ride['driverName']}", style: const TextStyle(fontSize: 13)),
+                        Text(
+                          "Driver: ${ride['driverName']}",
+                          style: const TextStyle(fontSize: 13),
+                        ),
                     ],
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => RideDetailScreen(
-                          ride: ride,
-                          rideId: ride['id'],
-                        ),
-                      ),
-                    );
-                  },
+                  onTap: () => _bookRide(context, ride),
                 ),
               );
             },
@@ -115,5 +133,90 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _bookRide(BuildContext context, Map<String, dynamic> ride) async {
+    final int seatsAvailable = ride['seats_available'] ?? 0;
+    final int requestedSeats = widget.persons;
+
+    // Early validation to improve UX
+    if (seatsAvailable < requestedSeats) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Not enough seats available for your request."),
+        ),
+      );
+      return;
+    }
+    print('----------------------------Available Seats: ${seatsAvailable}');
+    print('-----------------------------------Requested Seats: ${requestedSeats}');
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Use a transaction to ensure atomicity and prevent race conditions
+      final rideRef = FirebaseFirestore.instance.collection('rides').doc(ride['id']);
+      
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        // Get the latest document to ensure we have current seat availability
+        final DocumentSnapshot rideSnapshot = await transaction.get(rideRef);
+        
+        if (!rideSnapshot.exists) {
+          throw Exception("Ride no longer exists");
+        }
+        
+        final rideData = rideSnapshot.data() as Map<String, dynamic>;
+        final currentSeatsAvailable = rideData['seats_available'] ?? 0;
+        
+        // Re-validate with the latest data
+        if (currentSeatsAvailable < requestedSeats) {
+          throw Exception("Not enough seats available");
+        }
+        
+        // Update the seats_available field
+        transaction.update(rideRef, {
+          'seats_available': currentSeatsAvailable - requestedSeats,
+        });
+      });
+      
+      // Create the booking record after successful seat update
+      await FirebaseFirestore.instance.collection('bookings').add({
+        'rideId': ride['id'],
+        'userId': widget.userId,
+        'from': widget.from,
+        'to': widget.to,
+        'date': widget.date != null ? DateFormat('yyyy-MM-dd').format(widget.date!) : null,
+        'persons': requestedSeats,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Navigate to ride details with updated seat count
+      final updatedRide = {...ride, 'seats_available': seatsAvailable - requestedSeats};
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RideDetailScreen(
+            ride: updatedRide,
+            rideId: ride['id'],
+          ),
+        ),
+      );
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to book ride: ${e.toString()}")),
+      );
+    }
   }
 }

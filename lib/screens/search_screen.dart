@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:rydex/screens/map_preview.dart';
 import 'package:rydex/screens/place_search_screen.dart';
 import 'package:rydex/screens/search_result_screen.dart';
@@ -114,7 +115,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     labelText:
                         _selectedDate == null
                             ? "Select Date"
-                            : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+                            : DateFormat('dd/MM/yyyy').format(_selectedDate!),
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -179,6 +180,22 @@ class _SearchScreenState extends State<SearchScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Please select both locations"),
+                      ),
+                    );
+                    return;
+                  }
+                  if (_selectedDate == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Please select a date")),
+                    );
+                    return;
+                  }
+                  if (leavingFromController.text == goingToController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Leaving From and Going To cannot be the same",
+                        ),
                       ),
                     );
                     return;
