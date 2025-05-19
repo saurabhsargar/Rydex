@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rydex/screens/map_preview.dart';
 import 'package:rydex/screens/place_search_screen.dart';
-import 'package:geolocator/geolocator.dart'; // Add at the top
+import 'package:geolocator/geolocator.dart';
 
 class PublishRideScreen extends StatefulWidget {
   const PublishRideScreen({super.key});
@@ -17,6 +17,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
   final _formKey = GlobalKey<FormState>();
   LatLng? leavingFromLatLng;
   LatLng? goingToLatLng;
+  bool _isPublishing = false; // Add loading state
 
   final String googleMapsApiKey =
       'AIzaSyCDYtA7aiWr5_Xni4Q6JLrC27xpCk1VKSM'; // Replace with your actual key
@@ -29,6 +30,28 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
 
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
+
+  // Function to check if similar ride exists
+  Future<bool> _checkIfSimilarRideExists() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return false;
+    
+    // Format date and time for comparison
+    final dateString = selectedDate?.toIso8601String();
+    final timeString = selectedTime?.format(context);
+    
+    final rideQuery = await FirebaseFirestore.instance
+        .collection('rides')
+        .where('userId', isEqualTo: userId)
+        .where('from', isEqualTo: leavingFromController.text)
+        .where('to', isEqualTo: goingToController.text)
+        .where('date', isEqualTo: dateString)
+        .where('time', isEqualTo: timeString)
+        .limit(1)
+        .get();
+    
+    return rideQuery.docs.isNotEmpty;
+  }
 
   Future<void> _uploadRideToFirebase() async {
     final rideData = {
@@ -112,14 +135,6 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                       leavingFromLatLng = result['location'];
                     });
                   }
-                  // if (result['location'] is LatLng) {
-                  //   setState(() {
-                  //     leavingFromController.text = result['description'];
-                  //     leavingFromLatLng = result['location'];
-                  //   });
-                  // } else {
-                  //   print("Invalid location format");
-                  // }
                 },
                 child: AbsorbPointer(
                   child: TextFormField(
@@ -129,7 +144,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.my_location),
-                        onPressed: _getCurrentLocation, // Define this function
+                        onPressed: _getCurrentLocation,
                       ),
                     ),
                     validator:
@@ -157,14 +172,6 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                       goingToLatLng = result['location'];
                     });
                   }
-                  // if (result['location'] is LatLng) {
-                  //   setState(() {
-                  //     goingToController.text = result['description'];
-                  //     goingToLatLng = result['location'];
-                  //   });
-                  // } else {
-                  //   print("Invalid location format");
-                  // }
                 },
                 child: AbsorbPointer(
                   child: TextFormField(
@@ -202,6 +209,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                               : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
                       border: const OutlineInputBorder(),
                     ),
+                    validator: (value) => selectedDate == null ? "Select a date" : null,
                   ),
                 ),
               ),
@@ -226,6 +234,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                               : selectedTime!.format(context),
                       border: const OutlineInputBorder(),
                     ),
+                    validator: (value) => selectedTime == null ? "Select a time" : null,
                   ),
                 ),
               ),
@@ -260,34 +269,79 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
 
               Center(
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.publish),
-                  label: const Text("Publish Ride"),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      if (leavingFromLatLng == null || goingToLatLng == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please select both locations"),
-                          ),
-                        );
-                        return;
-                      }
+                  icon: _isPublishing 
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Icon(Icons.publish),
+                  label: Text(_isPublishing ? "Publishing..." : "Publish Ride"),
+                  onPressed: _isPublishing 
+                      ? null // Disable button while publishing
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            if (leavingFromLatLng == null || goingToLatLng == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Please select both locations"),
+                                ),
+                              );
+                              return;
+                            }
+                            
+                            if (selectedDate == null || selectedTime == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Please select date and time"),
+                                ),
+                              );
+                              return;
+                            }
 
-                      try {
-                        await _uploadRideToFirebase();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Ride Published Successfully"),
-                          ),
-                        );
-                      } catch (e) {
-                        debugPrint("Error uploading ride: $e");
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Failed to publish ride")),
-                        );
-                      }
-                    }
-                  },
+                            setState(() {
+                              _isPublishing = true;
+                            });
+
+                            try {
+                              // First check if a similar ride exists
+                              final similarRideExists = await _checkIfSimilarRideExists();
+                              
+                              if (similarRideExists) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("You've already published a ride with the same route, date and time"),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              } else {
+                                // No similar ride exists, proceed with upload
+                                await _uploadRideToFirebase();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Ride Published Successfully"),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                
+                                // Clear form after successful submission (optional)
+                                // _formKey.currentState!.reset();
+                              }
+                            } catch (e) {
+                              debugPrint("Error with ride publication: $e");
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Failed to publish ride"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            } finally {
+                              setState(() {
+                                _isPublishing = false;
+                              });
+                            }
+                          }
+                        },
                 ),
               ),
               SizedBox(height: 20),
@@ -296,8 +350,6 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                   icon: const Icon(Icons.preview),
                   label: const Text("Preview"),
                   onPressed: () {
-                    print("-----------Result-------- $leavingFromLatLng");
-                    print("-----------Result-------- $goingToLatLng");
                     if (leavingFromLatLng == null || goingToLatLng == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
