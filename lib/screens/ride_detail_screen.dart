@@ -7,8 +7,14 @@ import 'package:intl/intl.dart';
 class RideDetailScreen extends StatefulWidget {
   final Map<String, dynamic> ride;
   final String rideId;
+  final int? requestedSeats; // Add this parameter to know how many seats user wants
 
-  const RideDetailScreen({super.key, required this.ride, required this.rideId});
+  const RideDetailScreen({
+    super.key, 
+    required this.ride, 
+    required this.rideId,
+    this.requestedSeats = 1, // Default to 1 seat
+  });
 
   @override
   State<RideDetailScreen> createState() => _RideDetailScreenState();
@@ -17,10 +23,12 @@ class RideDetailScreen extends StatefulWidget {
 class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerProviderStateMixin {
   bool _isBooking = false;
   late AnimationController _animationController;
+  Map<String, dynamic> _currentRide = {};
   
   @override
   void initState() {
     super.initState();
+    _currentRide = Map.from(widget.ride);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -32,6 +40,25 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  // Check if user has already booked this ride
+  Future<bool> _hasUserAlreadyBooked(String rideId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    try {
+      final bookingSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('rideId', isEqualTo: rideId)
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      return bookingSnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print("Error checking existing bookings: $e");
+      return false;
+    }
   }
 
   Future<void> bookRide(BuildContext context) async {
@@ -49,34 +76,98 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
       return;
     }
 
+    final int seatsAvailable = _currentRide['seats_available'] ?? 0;
+    final int requestedSeats = widget.requestedSeats ?? 1;
+    final String rideId = widget.rideId;
+
+    // Early validation to improve UX
+    if (seatsAvailable < requestedSeats) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Not enough seats available for your request."),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.redAccent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(10),
+        ),
+      );
+      return;
+    }
+
+    // Check for double booking
+    final hasAlreadyBooked = await _hasUserAlreadyBooked(rideId);
+    if (hasAlreadyBooked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("You have already booked this ride."),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.orangeAccent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(10),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isBooking = true;
     });
 
     try {
+      // Use a transaction to ensure atomicity and prevent race conditions
+      final rideRef = FirebaseFirestore.instance.collection('rides').doc(rideId);
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        // Get the latest document to ensure we have current seat availability
+        final DocumentSnapshot rideSnapshot = await transaction.get(rideRef);
+
+        if (!rideSnapshot.exists) {
+          throw Exception("Ride no longer exists");
+        }
+
+        final rideData = rideSnapshot.data() as Map<String, dynamic>;
+        final currentSeatsAvailable = rideData['seats_available'] ?? 0;
+
+        // Re-validate with the latest data
+        if (currentSeatsAvailable < requestedSeats) {
+          throw Exception("Not enough seats available");
+        }
+
+        // Update the seats_available field
+        transaction.update(rideRef, {
+          'seats_available': currentSeatsAvailable - requestedSeats,
+        });
+      });
+
       // Create a booking in the separate 'bookings' collection
       await FirebaseFirestore.instance.collection('bookings').add({
-        'userId': FirebaseAuth.instance.currentUser?.uid,
-        'rideId': widget.rideId,
-        'from': widget.ride['from'],
-        'to': widget.ride['to'],
-        'date': widget.ride['date'],
-        'time': widget.ride['time'],
-        'driverName': widget.ride['driverName'],
-        'phone': widget.ride['phone'],
+        'userId': user.uid,
+        'rideId': rideId,
+        'from': _currentRide['from'],
+        'to': _currentRide['to'],
+        'date': _currentRide['date'],
+        'time': _currentRide['time'],
+        'driverName': _currentRide['driverName'],
+        'phone': _currentRide['phone'],
+        'persons': requestedSeats,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // Update local state to reflect the change immediately
+      setState(() {
+        _currentRide['seats_available'] = seatsAvailable - requestedSeats;
+      });
+
       // Optionally: Notify the driver
-      if (widget.ride['driverId'] != null) {
+      if (_currentRide['driverId'] != null) {
         await FirebaseFirestore.instance
             .collection('users')
-            .doc(widget.ride['driverId'])
+            .doc(_currentRide['driverId'])
             .collection('notifications')
             .add({
           'type': 'booking',
           'message': '${user.displayName ?? 'A user'} booked your ride.',
-          'rideId': widget.rideId,
+          'rideId': rideId,
           'timestamp': FieldValue.serverTimestamp(),
         });
       }
@@ -122,7 +213,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(_currentRide); // Return updated ride data
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal.shade600,
@@ -145,7 +236,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Booking failed: $e"),
+          content: Text("Booking failed: ${e.toString()}"),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.redAccent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -203,7 +294,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                       ),
                       child: IconButton(
                         icon: Icon(Icons.arrow_back, color: Colors.teal.shade700),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context, _currentRide),
                       ),
                     )
                     .animate(controller: _animationController)
@@ -280,7 +371,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "${widget.ride['from']} → ${widget.ride['to']}",
+                                        "${_currentRide['from']} → ${_currentRide['to']}",
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -328,7 +419,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "${widget.ride['from']}",
+                                        "${_currentRide['from']}",
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
@@ -347,7 +438,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "${widget.ride['to']}",
+                                        "${_currentRide['to']}",
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
@@ -412,7 +503,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    _formatDate(widget.ride['date']),
+                                    _formatDate(_currentRide['date']),
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -456,7 +547,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    widget.ride['time'] ?? "Not specified",
+                                    _currentRide['time'] ?? "Not specified",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -518,7 +609,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    widget.ride['driverName'] ?? "Not specified",
+                                    _currentRide['driverName'] ?? "Not specified",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -553,7 +644,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    "Seats",
+                                    "Available Seats",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
@@ -562,7 +653,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    "${widget.ride['seats'] ?? widget.ride['seats_available'] ?? 'Not specified'}",
+                                    "${_currentRide['seats_available'] ?? _currentRide['seats'] ?? 'Not specified'}",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -579,7 +670,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                       .fadeIn(duration: 600.ms, delay: 600.ms)
                       .moveY(begin: 20, end: 0),
                       
-                      if (widget.ride['phone'] != null) ...[
+                      if (_currentRide['phone'] != null) ...[
                         const SizedBox(height: 20),
                         
                         // Contact Card
@@ -625,7 +716,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      "${widget.ride['phone']}",
+                                      "${_currentRide['phone']}",
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -694,7 +785,7 @@ class _RideDetailScreenState extends State<RideDetailScreen> with SingleTickerPr
                               Icon(Icons.check_circle_outline, size: 24),
                               const SizedBox(width: 8),
                               Text(
-                                "Book Ride",
+                                "Book Ride (${widget.requestedSeats} ${widget.requestedSeats == 1 ? 'seat' : 'seats'})",
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,

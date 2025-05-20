@@ -150,7 +150,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 600.ms)
+                  .fadeIn(duration: 200.ms)
                   .moveY(begin: -20, end: 0),
                   
                   const SizedBox(height: 8),
@@ -163,7 +163,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 600.ms, delay: 200.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .moveY(begin: -20, end: 0),
                   
                   const SizedBox(height: 30),
@@ -236,7 +236,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                           ),
                         )
                         .animate(controller: _animationController)
-                        .fadeIn(duration: 600.ms, delay: 400.ms)
+                        .fadeIn(duration: 200.ms, delay: 200.ms)
                         .moveX(begin: -20, end: 0),
                         
                         const SizedBox(height: 20),
@@ -288,7 +288,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                           ),
                         )
                         .animate(controller: _animationController)
-                        .fadeIn(duration: 600.ms, delay: 500.ms)
+                        .fadeIn(duration: 200.ms, delay: 200.ms)
                         .moveX(begin: -20, end: 0),
                         
                         const SizedBox(height: 20),
@@ -352,7 +352,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                           ),
                         )
                         .animate(controller: _animationController)
-                        .fadeIn(duration: 600.ms, delay: 600.ms)
+                        .fadeIn(duration: 200.ms, delay: 200.ms)
                         .moveX(begin: -20, end: 0),
                         
                         const SizedBox(height: 20),
@@ -414,7 +414,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                           ),
                         )
                         .animate(controller: _animationController)
-                        .fadeIn(duration: 600.ms, delay: 700.ms)
+                        .fadeIn(duration: 200.ms, delay: 200.ms)
                         .moveX(begin: -20, end: 0),
                         
                         const SizedBox(height: 20),
@@ -447,7 +447,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                           ),
                         )
                         .animate(controller: _animationController)
-                        .fadeIn(duration: 600.ms, delay: 800.ms)
+                        .fadeIn(duration: 200.ms, delay: 200.ms)
                         .moveX(begin: -20, end: 0),
                         
                         const SizedBox(height: 20),
@@ -489,13 +489,13 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                           ),
                         )
                         .animate(controller: _animationController)
-                        .fadeIn(duration: 600.ms, delay: 900.ms)
+                        .fadeIn(duration: 200.ms, delay: 200.ms)
                         .moveX(begin: -20, end: 0),
                       ],
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 300.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .scale(begin: const Offset(0.95, 0.95)),
                   
                   const SizedBox(height: 30),
@@ -631,7 +631,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                                                   )
                                                   .animate()
                                                   .scale(
-                                                    duration: 400.ms,
+                                                    duration: 200.ms,
                                                     curve: Curves.easeOut,
                                                     begin: const Offset(0.5, 0.5),
                                                     end: const Offset(1, 1),
@@ -707,7 +707,7 @@ class _PublishRideScreenState extends State<PublishRideScreen> with SingleTicker
                     ],
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 600.ms, delay: 1000.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .moveY(begin: 20, end: 0),
                 ],
               ),

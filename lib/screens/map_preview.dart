@@ -522,7 +522,7 @@ class _MapPreviewScreenState extends State<MapPreviewScreen> with SingleTickerPr
           
           // My Location Button
           Positioned(
-            right: 16,
+            right: 29,
             bottom: _showDetails ? 240 : 16,
             child: Container(
               decoration: BoxDecoration(

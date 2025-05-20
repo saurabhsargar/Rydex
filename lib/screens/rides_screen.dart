@@ -44,13 +44,13 @@ class _YourRidesScreenState extends State<YourRidesScreen> with SingleTickerProv
       final publishedSnapshot = await FirebaseFirestore.instance
           .collection('rides')
           .where('userId', isEqualTo: uid)
-          .orderBy('timestamp', descending: true)
+          // .orderBy('timestamp', descending: true)
           .get();
 
       final bookedSnapshot = await FirebaseFirestore.instance
           .collection('bookings')
           .where('userId', isEqualTo: uid)
-          .orderBy('timestamp', descending: true)
+          // .orderBy('timestamp', descending: true)
           .get();
 
       setState(() {
@@ -150,7 +150,7 @@ class _YourRidesScreenState extends State<YourRidesScreen> with SingleTickerProv
                         ),
                       )
                       .animate(controller: _animationController)
-                      .fadeIn(duration: 400.ms)
+                      .fadeIn(duration: 200.ms)
                       .moveY(begin: -10, end: 0),
                       
                       const SizedBox(height: 12),
@@ -328,13 +328,13 @@ class _YourRidesScreenState extends State<YourRidesScreen> with SingleTickerProv
                               ),
                             ],
                           ),
-                        )
-                        .animate(controller: _animationController)
-                        .fadeIn(
-                          duration: 400.ms,
-                          delay: Duration(milliseconds: 100 * index),
-                        )
-                        .moveY(begin: 20, end: 0);
+                        );
+                        // .animate(controller: _animationController)
+                        // .fadeIn(
+                        //   duration: 200.ms,
+                        //   delay: Duration(milliseconds: 100 * index),
+                        // )
+                        // .moveY(begin: 20, end: 0);
                       }).toList(),
                     ],
                     
@@ -350,7 +350,7 @@ class _YourRidesScreenState extends State<YourRidesScreen> with SingleTickerProv
                         ),
                       )
                       .animate(controller: _animationController)
-                      .fadeIn(duration: 400.ms, delay: 200.ms)
+                      .fadeIn(duration: 200.ms, delay: 200.ms)
                       .moveY(begin: -10, end: 0),
                       
                       const SizedBox(height: 12),
@@ -530,13 +530,13 @@ class _YourRidesScreenState extends State<YourRidesScreen> with SingleTickerProv
                               ),
                             ],
                           ),
-                        )
-                        .animate(controller: _animationController)
-                        .fadeIn(
-                          duration: 400.ms,
-                          delay: Duration(milliseconds: 300 + (100 * index)),
-                        )
-                        .moveY(begin: 20, end: 0);
+                        );
+                        // .animate(controller: _animationController)
+                        // .fadeIn(
+                        //   duration: 200.ms,
+                        //   delay: Duration(milliseconds: 200 + (200 * index)),
+                        // )
+                        // .moveY(begin: 20, end: 0);
                       }).toList(),
                     ],
                     

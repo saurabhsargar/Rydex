@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     )
                     .animate(controller: _animationController)
-                    .fadeIn(duration: 300.ms)
+                    .fadeIn(duration: 200.ms)
                     .moveY(begin: -10, end: 0),
                     
                     const Spacer(),
@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     )
                     .animate(controller: _animationController)
-                    .fadeIn(duration: 300.ms, delay: 100.ms)
+                    .fadeIn(duration: 200.ms, delay: 200.ms)
                     .moveX(begin: 10, end: 0),
                   ],
                 ),
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               // Page Content
               Expanded(
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 200),
                   child: pages[currentIndex],
                 ),
               ),

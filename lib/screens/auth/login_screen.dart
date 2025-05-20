@@ -95,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     color: Colors.white,
                   )
                   .animate(controller: _animationController)
-                  .scale(duration: 600.ms, curve: Curves.easeOutBack)
+                  .scale(duration: 200.ms, curve: Curves.easeOutBack)
                   .then()
                   .shimmer(duration: 1200.ms),
                   
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 300.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .moveY(begin: 20, end: 0, curve: Curves.easeOutQuad),
                   
                   const SizedBox(height: 8),
@@ -124,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 500.ms),
+                  .fadeIn(duration: 200.ms, delay: 200.ms),
                   
                   const SizedBox(height: 40),
                   
@@ -182,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             keyboardType: TextInputType.emailAddress,
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 700.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 16),
@@ -223,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             validator: (val) => val!.length < 6 ? 'Min 6 characters' : null,
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 900.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 24),
@@ -261,14 +261,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 1100.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveY(begin: 20, end: 0, curve: Curves.easeOutQuad),
                         ],
                       ),
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 600.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutQuad),
                   
                   const SizedBox(height: 24),
@@ -297,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 600.ms, delay: 1300.ms),
+                  .fadeIn(duration: 200.ms, delay: 200.ms),
                 ],
               ),
             ),

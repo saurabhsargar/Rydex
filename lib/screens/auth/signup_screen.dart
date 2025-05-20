@@ -101,9 +101,9 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                     color: Colors.white,
                   )
                   .animate(controller: _animationController)
-                  .scale(duration: 600.ms, curve: Curves.easeOutBack)
+                  .scale(duration: 200.ms, curve: Curves.easeOutBack)
                   .then()
-                  .shimmer(duration: 1200.ms),
+                  .shimmer(duration: 200.ms),
                   
                   const SizedBox(height: 12),
                   
@@ -117,7 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 300.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .moveY(begin: 20, end: 0, curve: Curves.easeOutQuad),
                   
                   const SizedBox(height: 8),
@@ -130,7 +130,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 500.ms),
+                  .fadeIn(duration: 200.ms, delay: 200.ms),
                   
                   const SizedBox(height: 30),
                   
@@ -188,7 +188,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             keyboardType: TextInputType.emailAddress,
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 600.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 16),
@@ -229,7 +229,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             validator: (val) => val!.length < 6 ? 'Min 6 characters' : null,
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 700.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 16),
@@ -258,7 +258,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             validator: (val) => val!.isEmpty ? 'Enter name' : null,
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 800.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 16),
@@ -288,7 +288,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             validator: (val) => val!.isEmpty ? 'Enter phone' : null,
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 900.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 16),
@@ -324,7 +324,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             onChanged: (val) => setState(() => role = val!),
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 1000.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveX(begin: -20, end: 0, curve: Curves.easeOutQuad),
                           
                           const SizedBox(height: 24),
@@ -362,14 +362,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             ),
                           )
                           .animate(controller: _animationController)
-                          .fadeIn(duration: 600.ms, delay: 1100.ms)
+                          .fadeIn(duration: 200.ms, delay: 200.ms)
                           .moveY(begin: 20, end: 0, curve: Curves.easeOutQuad),
                         ],
                       ),
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 800.ms, delay: 600.ms)
+                  .fadeIn(duration: 200.ms, delay: 200.ms)
                   .scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutQuad),
                   
                   const SizedBox(height: 20),
@@ -398,7 +398,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                     ),
                   )
                   .animate(controller: _animationController)
-                  .fadeIn(duration: 600.ms, delay: 1300.ms),
+                  .fadeIn(duration: 200.ms, delay: 200.ms),
                 ],
               ),
             ),

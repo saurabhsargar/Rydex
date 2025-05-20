@@ -40,6 +40,33 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     return snapshot.data();
   }
 
+  Future<Map<String, int>> fetchRideCounts() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return {'ridesGiven': 0, 'ridesTaken': 0};
+
+    try {
+      // Fetch published rides (rides given)
+      final publishedSnapshot = await FirebaseFirestore.instance
+          .collection('rides')
+          .where('userId', isEqualTo: uid)
+          .get();
+
+      // Fetch booked rides (rides taken)
+      final bookedSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('userId', isEqualTo: uid)
+          .get();
+
+      return {
+        'ridesGiven': publishedSnapshot.docs.length,
+        'ridesTaken': bookedSnapshot.docs.length,
+      };
+    } catch (e) {
+      // If there's an error, return 0 for both counts
+      return {'ridesGiven': 0, 'ridesTaken': 0};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -51,8 +78,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           stops: const [0.7, 1.0],
         ),
       ),
-      child: FutureBuilder<Map<String, dynamic>?>(
-        future: fetchUserData(),
+      child: FutureBuilder<List<dynamic>>(
+        future: Future.wait([fetchUserData(), fetchRideCounts()]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -62,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             );
           }
 
-          if (!snapshot.hasData || snapshot.data == null) {
+          if (!snapshot.hasData || snapshot.data == null || snapshot.data![0] == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -86,7 +113,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             );
           }
 
-          final userData = snapshot.data!;
+          final userData = snapshot.data![0] as Map<String, dynamic>;
+          final rideCounts = snapshot.data![1] as Map<String, int>;
+          
           final String name = userData['name'] ?? 'User';
           final String email = userData['email'] ?? 'No email';
           final String phone = userData['phone'] ?? 'No phone';
@@ -165,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         ],
                       )
                       .animate(controller: _animationController)
-                      .fadeIn(duration: 600.ms)
+                      .fadeIn(duration: 200.ms)
                       .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0)),
                       
                       const SizedBox(height: 20),
@@ -180,7 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         ),
                       )
                       .animate(controller: _animationController)
-                      .fadeIn(duration: 600.ms, delay: 200.ms)
+                      .fadeIn(duration: 200.ms, delay: 200.ms)
                       .moveY(begin: -10, end: 0),
                       
                       const SizedBox(height: 8),
@@ -202,13 +231,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         ),
                       )
                       .animate(controller: _animationController)
-                      .fadeIn(duration: 600.ms, delay: 300.ms)
+                      .fadeIn(duration: 200.ms, delay: 200.ms)
                       .moveY(begin: -10, end: 0),
                     ],
                   ),
                 )
                 .animate(controller: _animationController)
-                .fadeIn(duration: 800.ms)
+                .fadeIn(duration: 200.ms)
                 .moveY(begin: -20, end: 0),
                 
                 const SizedBox(height: 24),
@@ -286,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   ),
                 )
                 .animate(controller: _animationController)
-                .fadeIn(duration: 800.ms, delay: 400.ms)
+                .fadeIn(duration: 200.ms, delay: 200.ms)
                 .moveY(begin: 20, end: 0),
                 
                 const SizedBox(height: 24),
@@ -325,7 +354,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              userData['ridesGiven']?.toString() ?? '0',
+                              rideCounts['ridesGiven'].toString(),
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -369,7 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              userData['ridesTaken']?.toString() ?? '0',
+                              rideCounts['ridesTaken'].toString(),
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -391,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   ),
                 )
                 .animate(controller: _animationController)
-                .fadeIn(duration: 800.ms, delay: 600.ms)
+                .fadeIn(duration: 200.ms, delay: 200.ms)
                 .moveY(begin: 20, end: 0),
                 
                 const SizedBox(height: 24),
@@ -485,7 +514,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   ],
                 )
                 .animate(controller: _animationController)
-                .fadeIn(duration: 800.ms, delay: 800.ms)
+                .fadeIn(duration: 200.ms, delay: 200.ms)
                 .moveY(begin: 20, end: 0),
                 
                 const SizedBox(height: 40),
