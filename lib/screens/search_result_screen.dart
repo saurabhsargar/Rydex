@@ -770,6 +770,31 @@ class _SearchResultScreenState extends State<SearchResultScreen>
                                                 ),
                                               ],
                                             ),
+                                            
+                                            // Add fare display
+                                            if (ride['fare'] != null) ...[
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.attach_money,
+                                                    size: 16,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    "Fare: \$${ride['fare']}",
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Colors.teal.shade700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
 
                                             const SizedBox(height: 16),
 

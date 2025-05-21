@@ -36,6 +36,10 @@ class _RideDetailScreenState extends State<RideDetailScreen>
       duration: const Duration(milliseconds: 1000),
     );
     _animationController.forward();
+      // Fetch driver name if not available
+  if (_currentRide['driverName'] == null && _currentRide['userId'] != null) {
+    _fetchDriverName();
+  }
   }
 
   @override
@@ -63,6 +67,23 @@ class _RideDetailScreenState extends State<RideDetailScreen>
       return false;
     }
   }
+
+  Future<void> _fetchDriverName() async {
+  try {
+    final driverDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentRide['userId'])
+        .get();
+    
+    if (driverDoc.exists) {
+      setState(() {
+        _currentRide['driverName'] = driverDoc.data()?['name'] ?? 'Driver';
+      });
+    }
+  } catch (e) {
+    print("Error fetching driver name: $e");
+  }
+}
 
   Future<void> bookRide(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -160,7 +181,7 @@ class _RideDetailScreenState extends State<RideDetailScreen>
         'to': _currentRide['to'],
         'date': _currentRide['date'],
         'time': _currentRide['time'],
-        'driverName': _currentRide['driverName'],
+        'driverName': _currentRide['driverName'] ?? 'Driver',
         'phone': _currentRide['phone'],
         'persons': requestedSeats,
         'timestamp': FieldValue.serverTimestamp(),
@@ -700,6 +721,70 @@ class _RideDetailScreenState extends State<RideDetailScreen>
                           .animate(controller: _animationController)
                           .fadeIn(duration: 600.ms, delay: 600.ms)
                           .moveY(begin: 20, end: 0),
+
+                      if (_currentRide['fare'] != null) ...[
+                        const SizedBox(height: 20),
+
+                        // Fare Card
+                        Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.attach_money,
+                                      color: Colors.teal.shade700,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Fare",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "\$${_currentRide['fare']}",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            .animate(controller: _animationController)
+                            .fadeIn(duration: 600.ms, delay: 800.ms)
+                            .moveY(begin: 20, end: 0),
+                      ],
 
                       if (_currentRide['phone'] != null) ...[
                         const SizedBox(height: 20),

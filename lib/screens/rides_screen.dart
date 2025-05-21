@@ -758,6 +758,28 @@ class _YourRidesScreenState extends State<YourRidesScreen>
                                           ],
                                         ),
                                       ),
+                                      const SizedBox(height: 16),
+
+                                      if (ride['fare'] != null)
+                                        Expanded(
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.attach_money,
+                                                size: 16,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                "\$${ride['fare']}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                     ],
                                   ),
 
@@ -1047,6 +1069,27 @@ class _YourRidesScreenState extends State<YourRidesScreen>
                                             ],
                                           ),
                                         ),
+                                      // Add fare if available
+                                      if (ride['fare'] != null) ...[
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.attach_money,
+                                              size: 16,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              "Fare: \$${ride['fare']}",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ],
                                   ),
 
@@ -1140,6 +1183,7 @@ class _EditRideScreenState extends State<EditRideScreen> {
   late TextEditingController _toController;
   late TextEditingController _seatsController;
   late TextEditingController _timeController;
+  late TextEditingController _fareController;
   DateTime? _selectedDate;
   bool _isLoading = false;
 
@@ -1152,6 +1196,9 @@ class _EditRideScreenState extends State<EditRideScreen> {
       text: (widget.ride['seats_available'] ?? 0).toString(),
     );
     _timeController = TextEditingController(text: widget.ride['time']);
+    _fareController = TextEditingController(
+      text: widget.ride['fare']?.toString() ?? '',
+    );
 
     if (widget.ride['date'] != null) {
       try {
@@ -1168,6 +1215,7 @@ class _EditRideScreenState extends State<EditRideScreen> {
     _toController.dispose();
     _seatsController.dispose();
     _timeController.dispose();
+    _fareController.dispose();
     super.dispose();
   }
 
@@ -1273,6 +1321,7 @@ class _EditRideScreenState extends State<EditRideScreen> {
           'seats_available': int.parse(_seatsController.text),
           'time': _timeController.text,
           'date': _selectedDate!.toIso8601String(),
+          'fare': double.parse(_fareController.text), // Add fare
           'updated_at': FieldValue.serverTimestamp(),
         };
 
@@ -1520,6 +1569,48 @@ class _EditRideScreenState extends State<EditRideScreen> {
 
                           if (seats < 1) {
                             return "Must have at least 1 seat";
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _fareController,
+                        decoration: InputDecoration(
+                          labelText: "Fare",
+                          prefixIcon: Icon(
+                            Icons.attach_money,
+                            color: Colors.teal.shade600,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.teal.shade600,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter fare amount";
+                          }
+
+                          final fare = double.tryParse(value);
+                          if (fare == null) {
+                            return "Please enter a valid number";
+                          }
+
+                          if (fare < 0) {
+                            return "Fare cannot be negative";
                           }
 
                           return null;
