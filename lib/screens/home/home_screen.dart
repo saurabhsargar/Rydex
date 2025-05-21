@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rydex/screens/Inbox.dart';
 import 'package:rydex/screens/profile/profile_screen.dart';
 import 'package:rydex/screens/publish_screen.dart';
 import 'package:rydex/screens/rides_screen.dart';
@@ -20,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     const SearchScreen(),
     const PublishRideScreen(),
     const YourRidesScreen(),
+    const ChatScreen(),
     const ProfileScreen(),
   ];
 
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     "Search Rides",
     "Publish Ride",
     "Your Rides",
+    "Inbox",
     "Profile"
   ];
   
@@ -189,6 +192,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(Icons.directions_car_filled, color: Colors.teal.shade700),
+                  ),
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.message_outlined),
+                  label: "Inbox",
+                  activeIcon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.message_outlined, color: Colors.teal.shade700),
                   ),
                 ),
                 BottomNavigationBarItem(
