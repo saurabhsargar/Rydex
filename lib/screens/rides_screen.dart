@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:rydex/screens/chat_screen.dart';
 
 class YourRidesScreen extends StatefulWidget {
   const YourRidesScreen({super.key});
@@ -42,33 +43,67 @@ class _YourRidesScreenState extends State<YourRidesScreen>
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
 
+      // Fetch published rides (as you're already doing)
       final publishedSnapshot =
           await FirebaseFirestore.instance
               .collection('rides')
               .where('userId', isEqualTo: uid)
-              // .orderBy('timestamp', descending: true)
               .get();
 
+      final publishedRides =
+          publishedSnapshot.docs.map((doc) {
+            final data = doc.data();
+            return {'id': doc.id, ...data};
+          }).toList();
+
+      // Fetch booked rides
       final bookedSnapshot =
           await FirebaseFirestore.instance
               .collection('bookings')
               .where('userId', isEqualTo: uid)
-              // .orderBy('timestamp', descending: true)
               .get();
 
+      // Process booked rides and fetch associated ride info
+      List<Map<String, dynamic>> bookedRides = [];
+      for (var doc in bookedSnapshot.docs) {
+        final bookingData = doc.data();
+        final bookingWithId = {'id': doc.id, ...bookingData};
+
+        // Fetch the associated ride to get driver information
+        if (bookingData['rideId'] != null) {
+          final rideDoc =
+              await FirebaseFirestore.instance
+                  .collection('rides')
+                  .doc(bookingData['rideId'])
+                  .get();
+
+          if (rideDoc.exists) {
+            final rideData = rideDoc.data();
+            // Add driver ID from the ride to the booking data
+            bookingWithId['driverId'] = rideData?['userId'];
+
+            // Optionally fetch driver name too
+            if (rideData?['userId'] != null) {
+              final driverDoc =
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(rideData?['userId'])
+                      .get();
+
+              if (driverDoc.exists) {
+                final driverData = driverDoc.data();
+                bookingWithId['driverName'] = driverData?['name'] ?? 'Driver';
+              }
+            }
+          }
+        }
+
+        bookedRides.add(bookingWithId);
+      }
+
       setState(() {
-        _publishedRides =
-            publishedSnapshot.docs.map((doc) {
-              final data = doc.data();
-              return {'id': doc.id, ...data};
-            }).toList();
-
-        _bookedRides =
-            bookedSnapshot.docs.map((doc) {
-              final data = doc.data();
-              return {'id': doc.id, ...data};
-            }).toList();
-
+        _publishedRides = publishedRides;
+        _bookedRides = bookedRides;
         _isLoading = false;
       });
 
@@ -89,6 +124,147 @@ class _YourRidesScreenState extends State<YourRidesScreen>
           margin: const EdgeInsets.all(10),
         ),
       );
+    }
+  }
+
+  Future<Map<String, dynamic>> _getDriverOrPassengerDetails(
+    Map<String, dynamic> ride,
+    bool isDriver,
+  ) async {
+    try {
+      String otherUserId;
+      String otherUserName = "User";
+
+      if (isDriver) {
+        // If current user is the driver, get passenger details
+        otherUserId = ride['userId']; // The passenger's ID
+
+        // Fetch passenger's name
+        final passengerDoc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(otherUserId)
+                .get();
+
+        if (passengerDoc.exists) {
+          final userData = passengerDoc.data();
+          otherUserName = userData?['name'] ?? 'Passenger';
+        }
+      } else {
+        // If current user is the passenger, get driver details
+        otherUserId = ride['driverId']; // The driver's ID
+
+        // Fetch driver's name
+        final driverDoc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(otherUserId)
+                .get();
+
+        if (driverDoc.exists) {
+          final userData = driverDoc.data();
+          otherUserName = userData?['name'] ?? 'Driver';
+        }
+      }
+
+      return {'userId': otherUserId, 'name': otherUserName};
+    } catch (e) {
+      // Return default values if error occurs
+      return {'userId': '', 'name': 'User'};
+    }
+  }
+
+  void _navigateToChat(Map<String, dynamic> ride, bool isDriver) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      String otherUserId = '';
+      String otherUserName = 'User';
+
+      if (isDriver) {
+        // Current user is the driver, get passenger info
+        // Code for this case seems fine
+        final bookingsSnapshot =
+            await FirebaseFirestore.instance
+                .collection('bookings')
+                .where('rideId', isEqualTo: ride['id'])
+                .get();
+
+        if (bookingsSnapshot.docs.isNotEmpty) {
+          final bookingData = bookingsSnapshot.docs.first.data();
+          otherUserId = bookingData['userId'];
+
+          // Get passenger name
+          final userDoc =
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(otherUserId)
+                  .get();
+
+          if (userDoc.exists) {
+            final userData = userDoc.data();
+            otherUserName = userData?['name'] ?? 'Passenger';
+          }
+        }
+      } else {
+        // Current user is the passenger, get driver info
+        // This part should now work because we've added driverId to the booking data
+        otherUserId = ride['driverId'] ?? '';
+
+        if (otherUserId.isNotEmpty) {
+          // Get driver name if not already fetched
+          if (ride['driverName'] == null) {
+            final userDoc =
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(otherUserId)
+                    .get();
+
+            if (userDoc.exists) {
+              final userData = userDoc.data();
+              otherUserName = userData?['name'] ?? 'Driver';
+            }
+          } else {
+            otherUserName = ride['driverName'];
+          }
+        }
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (otherUserId.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => ChatScreen(
+                  rideId: ride['id'],
+                  otherUserId: otherUserId,
+                  otherUserName: otherUserName,
+                  isDriver: isDriver,
+                ),
+          ),
+        );
+      } else {
+        // Show an error if we couldn't find the other user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Couldn't find the other user for this ride"),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(10),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
     }
   }
 
@@ -592,7 +768,11 @@ class _YourRidesScreenState extends State<YourRidesScreen>
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       OutlinedButton(
-                                        onPressed: () {},
+                                        onPressed:
+                                            () => _navigateToChat(
+                                              ride,
+                                              true,
+                                            ), // true means current user is the driver
                                         style: OutlinedButton.styleFrom(
                                           side: BorderSide(
                                             color: Colors.blue.shade300,
@@ -877,7 +1057,11 @@ class _YourRidesScreenState extends State<YourRidesScreen>
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       OutlinedButton(
-                                        onPressed: () {},
+                                        onPressed:
+                                            () => _navigateToChat(
+                                              ride,
+                                              false,
+                                            ), // false means current user is the passenger
                                         style: OutlinedButton.styleFrom(
                                           side: BorderSide(
                                             color: Colors.blue.shade300,

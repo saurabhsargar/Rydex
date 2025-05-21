@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rydex/screens/Inbox.dart';
+import 'package:rydex/screens/chat_screen.dart';
 import 'package:rydex/screens/profile/profile_screen.dart';
 import 'package:rydex/screens/publish_screen.dart';
 import 'package:rydex/screens/rides_screen.dart';
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     const SearchScreen(),
     const PublishRideScreen(),
     const YourRidesScreen(),
-    const ChatScreen(),
+    const ChatInboxScreen(),
     const ProfileScreen(),
   ];
 
