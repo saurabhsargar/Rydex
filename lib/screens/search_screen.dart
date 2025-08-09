@@ -24,7 +24,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   LatLng? leavingFromLatLng;
   LatLng? goingToLatLng;
 
-  final String googleMapsApiKey = 'AIzaSyCDYtA7aiWr5_Xni4Q6JLrC27xpCk1VKSM';
+  final String googleMapsApiKey = ''; //Your API Key
   
   @override
   void initState() {

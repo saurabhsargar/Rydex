@@ -23,7 +23,7 @@ class _PublishRideScreenState extends State<PublishRideScreen>
   bool _isPublishing = false;
   late AnimationController _animationController;
 
-  final String googleMapsApiKey = 'AIzaSyCDYtA7aiWr5_Xni4Q6JLrC27xpCk1VKSM';
+  final String googleMapsApiKey = ''; //Your API Key
 
   final TextEditingController leavingFromController = TextEditingController();
   final TextEditingController goingToController = TextEditingController();
